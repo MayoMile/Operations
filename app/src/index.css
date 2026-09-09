@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-paper text-ink;
+  }
+  html.dark {
+    @apply bg-dark-paper text-dark-ink;
+  }
+  body {
+    @apply font-body antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading uppercase tracking-wide;
+  }
+}

@@ -1,0 +1,18 @@
+node_modules/
+dist/
+build/
+.vscode/
+*.log
+*.tsbuildinfo
+
+# Vite
+app/.vite/
+
+# Azure Functions
+api/local.settings.json
+api/bin/
+api/obj/
+
+# SWA CLI
+.swa/
+swa-db-connections/

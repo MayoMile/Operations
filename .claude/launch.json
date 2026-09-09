@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "swa",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "swa",
+        "start",
+        "http://localhost:5173",
+        "--api-devserver-url",
+        "http://localhost:7071",
+        "--run",
+        "npm run dev --prefix app"
+      ],
+      "port": 4280
+    }
+  ]
+}
