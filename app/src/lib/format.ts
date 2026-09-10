@@ -22,11 +22,18 @@ export function formatPercent(value: number | null | undefined): string {
   return `${value.toFixed(1)}%`;
 }
 
+/** Formats a datetime string (e.g. from the API's pickup_date/delivery_date,
+ * which come back as UTC ISO strings like "2026-07-19T00:01:00.000Z") using
+ * its UTC calendar date, not the viewer's local timezone. These columns are
+ * a business calendar day with an irrelevant embedded time-of-day — reading
+ * them in local time would roll the day back for any viewer west of UTC
+ * whenever the stored time is earlier than the local offset (e.g. every US
+ * timezone, for a time near midnight UTC). */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-US", {
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
