@@ -294,7 +294,7 @@ export function LoadsPage() {
         title="Loads"
         subtitle={
           mode === "all"
-            ? "All loads, most recent pickup first"
+            ? "All loads, earliest pickup first"
             : mode === "search"
               ? `Search results for "${searchText}"`
               : "This week"

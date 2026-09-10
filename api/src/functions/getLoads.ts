@@ -38,7 +38,7 @@ export async function getLoads(
       .query(`
         SELECT ${LIST_COLUMNS}
         FROM dbo.Loads
-        ORDER BY pickup_date DESC
+        ORDER BY pickup_date ASC
         OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY
       `);
 
