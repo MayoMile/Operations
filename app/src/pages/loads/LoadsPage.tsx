@@ -246,18 +246,18 @@ export function LoadsPage() {
       sortValue: (r) => r.delivery_location,
     },
     {
-      key: "loaded_miles",
-      header: "Loaded Mi",
-      align: "right",
-      render: (r) => <span className="font-mono">{formatMiles(r.loaded_miles)}</span>,
-      sortValue: (r) => r.loaded_miles,
-    },
-    {
       key: "deadhead",
       header: "Deadhead",
       align: "right",
       render: (r) => <span className="font-mono">{formatMiles(r.deadhead)}</span>,
       sortValue: (r) => r.deadhead,
+    },
+    {
+      key: "loaded_miles",
+      header: "Loaded Mi",
+      align: "right",
+      render: (r) => <span className="font-mono">{formatMiles(r.loaded_miles)}</span>,
+      sortValue: (r) => r.loaded_miles,
     },
     {
       key: "total_miles",
