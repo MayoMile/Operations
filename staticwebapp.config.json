@@ -9,6 +9,7 @@
   "routes": [
     { "route": "/.auth/*", "allowedRoles": ["anonymous"] },
     { "route": "/403.html", "allowedRoles": ["anonymous"] },
+    { "route": "/api/ping", "allowedRoles": ["anonymous"] },
     { "route": "/*", "allowedRoles": ["authorized"] }
   ],
   "responseOverrides": {

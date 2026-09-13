@@ -1,0 +1,29 @@
+name: Keep database warm
+
+# mayomilesql1 (Azure SQL Serverless) auto-pauses after 60 minutes of
+# inactivity, and resuming from pause takes 20-50+ seconds. Confirmed via
+# Application Insights request timing: getLoads/getMostRecentLoad/
+# getWeeklyTotals were stalling 20-52s in a clear bimodal pattern (fast
+# when warm, ~45-52s when not), clustered right around the app's 45s SQL
+# timeout. Pinging a lightweight, unauthenticated endpoint (api/ping —
+# see pingDb.ts) regularly during business hours keeps the database from
+# ever reaching that 60-minute threshold while people are actually using
+# the dashboard, without raising the auto-pause delay itself (which would
+# also keep it warm overnight, at higher cost, when nobody's using it).
+on:
+  schedule:
+    # Every 30 minutes — comfortably under the 60-minute auto-pause window
+    # even allowing for GitHub's scheduling jitter. Hours are UTC;
+    # 10-23,0-2 covers roughly 4am-9pm Central across both standard and
+    # daylight time, generously bracketing business hours.
+    - cron: "*/30 10-23,0-2 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the keep-warm endpoint
+        run: |
+          curl -sS -o /dev/null -w "HTTP %{http_code}\n" --fail \
+            "https://dashboard.mayomile.com/api/ping"
