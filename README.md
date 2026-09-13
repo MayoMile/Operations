@@ -387,3 +387,52 @@ deployed (or once you've supplied real local credentials + the
    the root, and that after signing in you land back on `/route-calculator`
    (`post_login_redirect_uri=.referrer` in the config) rather than always
    bouncing to the default page.
+
+## Known issues
+
+**Intermittent "Error 403 - This web app is stopped" on API-backed pages.**
+
+*Symptom:* `/loads`, `/reports`, or any other API-backed page shows an
+inline error starting with `Error: 403 :` followed by raw HTML titled "Web
+App - Unavailable" / "This web app is stopped." The page shell and
+navigation keep working fine — only the `/api/*` calls fail — because the
+static content and `/.auth/*` routing are served by a different layer than
+the Functions compute.
+
+*Cause:* a persistent, platform-side health check failure on the co-located
+Functions' auto-provisioned storage backing, visible in Application Insights
+as `azure.functions.webjobs.storage: Unhealthy — Unable to create client for
+AzureWebJobsStorage`, firing roughly every 30 seconds. This isn't something
+this project's code configures — the co-located/managed Functions model
+(the `--api-location` deploy path this project uses) provisions that storage
+internally, and root cause on Azure's side is unconfirmed. It has twice
+escalated into the platform stopping the Function host outright.
+
+*Fix:* redeploy with **both** `app` and `api` locations — an app-only
+deploy does **not** recycle the Function host and won't clear this:
+```bash
+npx --yes @azure/static-web-apps-cli deploy \
+  --app-location app/dist \
+  --api-location api \
+  --deployment-token <token> \
+  --env production
+```
+
+*What was tried and rejected:*
+- Setting `AzureWebJobsStorage` explicitly as an app setting (pointing at a
+  real storage account) — this **breaks deployment entirely** for the
+  co-located Functions model (`swa deploy` fails with "Failed to deploy the
+  Azure Functions"). Confirmed directly: removing the setting immediately
+  fixed deployment again.
+- Migrating the API to a standalone linked ("bring your own") Function App
+  — would fix this at the root (full control over `AzureWebJobsStorage`,
+  plus real managed-identity SQL auth), but there's an open, unresolved
+  Microsoft/Azure GitHub issue ([Azure/static-web-apps#1105](https://github.com/Azure/static-web-apps/issues/1105))
+  reporting that `auth.rolesSource` — the exact mechanism the 2-user
+  allowlist (`getRoles.ts`) depends on — returns 404 and fails when the
+  backend is a linked Function App instead of co-located managed functions.
+  A linked backend also fully replaces `/api/*` (only one backend allowed
+  at a time), so there's no way to keep just `GetRoles` on managed
+  functions while moving the rest. Rejected as too risky to the working
+  authentication system for an unconfirmed, possibly-unfixable platform
+  limitation.
