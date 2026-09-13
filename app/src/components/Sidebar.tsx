@@ -4,7 +4,7 @@ import logo from "@/assets/mayomile-logo.png";
 const NAV_ITEMS = [
   { to: "/loads", label: "Loads" },
   { to: "/agencies", label: "Agencies" },
-  { to: "/settlements", label: "Weekly Settlements" },
+  { to: "/settlements", label: "Settlements" },
   { to: "/route-calculator", label: "Route Calculator" },
   { to: "/reports", label: "Reports" },
   { to: "/settings", label: "Settings" },
