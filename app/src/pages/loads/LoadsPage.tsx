@@ -26,7 +26,7 @@ const WeekComparisonChart = lazy(() =>
 
 type FilterMode = "all" | "search" | "week";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 1000;
 
 export function LoadsPage() {
   const [mode, setMode] = useState<FilterMode>("all");

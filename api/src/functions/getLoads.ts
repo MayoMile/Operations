@@ -12,7 +12,7 @@ export async function getLoads(
 ): Promise<HttpResponseInit> {
   try {
     const page = Math.max(1, Number(request.query.get("page")) || 1);
-    const pageSize = Math.min(100, Math.max(1, Number(request.query.get("pageSize")) || 25));
+    const pageSize = Math.min(1000, Math.max(1, Number(request.query.get("pageSize")) || 25));
     const offset = (page - 1) * pageSize;
 
     const pool = await getPool();
