@@ -23,7 +23,23 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping the keep-warm endpoint
+      - name: Ping the keep-warm endpoint (with retries)
         run: |
-          curl -sS -o /dev/null -w "HTTP %{http_code}\n" --fail \
-            "https://dashboard.mayomile.com/api/ping"
+          # A single failure here is usually the platform-level "stopped
+          # host" instability documented in README.md's Known Issues, not
+          # something this ping caused or can fix directly — it's a
+          # transient, self-healing blip (the scheduled redeploy workflow
+          # recycles the host every 6 hours regardless). Retrying a few
+          # times in the same run means a passing blip doesn't have to wait
+          # for the next 30-minute tick, and doesn't mark this run failed
+          # for something that isn't actionable.
+          for attempt in 1 2 3; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" "https://dashboard.mayomile.com/api/ping")
+            echo "Attempt $attempt: HTTP $code"
+            if [ "$code" = "200" ]; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "All attempts failed."
+          exit 1
