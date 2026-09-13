@@ -197,3 +197,41 @@ export interface DieselPriceResponse {
   period: string;
   live: boolean;
 }
+
+export interface SettlementDateSummary {
+  statement_date: string;
+  net_total: number;
+}
+
+export interface SettlementLine {
+  id: number;
+  entry_date: string | null;
+  description: string | null;
+  category: string | null;
+  line_type: "revenue" | "reversal" | "deduction" | string;
+  amount: number;
+  signed_amount: number;
+}
+
+export interface SettlementGroup {
+  agency_code: string | null;
+  freight_bill: string | null;
+  load_number: string | null;
+  pickup_location: string | null;
+  delivery_location: string | null;
+  pickup_date: string | null;
+  net_amount: number;
+  lines: SettlementLine[];
+}
+
+export interface SettlementStatement {
+  statement_date: string;
+  groups: SettlementGroup[];
+  summary: {
+    total_revenue: number;
+    total_reversals: number;
+    total_deductions: number;
+    by_category: Record<string, number>;
+    net_total: number;
+  };
+}

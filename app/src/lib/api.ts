@@ -6,6 +6,8 @@ import type {
   LoadDetail,
   MostRecentLoad,
   PaginatedLoads,
+  SettlementDateSummary,
+  SettlementStatement,
   WeeklyProfitabilityRow,
   WeeklyTotalsRow,
 } from "./types";
@@ -69,4 +71,12 @@ export function getDataQualityDashboard(): Promise<DataQualityDashboardData> {
 
 export function getDieselPrice(): Promise<DieselPriceResponse> {
   return getJSON(`/api/route-calculator/diesel-price`);
+}
+
+export function getSettlementDates(): Promise<{ statements: SettlementDateSummary[] }> {
+  return getJSON(`/api/settlements/dates`);
+}
+
+export function getSettlementStatement(date: string): Promise<SettlementStatement> {
+  return getJSON(`/api/settlements/${encodeURIComponent(date)}`);
 }
