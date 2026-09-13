@@ -1,0 +1,43 @@
+name: Scheduled redeploy (Function host recycle)
+
+# The co-located Functions backend on mayomile-ops-dashboard has a
+# persistent, unresolved platform-side storage health check failure that
+# can eventually get the Function host stopped outright (see the "Known
+# issues" section in README.md). A full app+api redeploy reliably recycles
+# the host and clears it. This workflow does that proactively on a timer so
+# outages don't depend on how often we happen to ship an app change.
+on:
+  schedule:
+    - cron: "0 */6 * * *" # every 6 hours
+  workflow_dispatch: {} # allow manual "Run workflow" from the Actions tab
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build frontend
+        working-directory: app
+        run: |
+          npm ci
+          npm run build
+          cp ../staticwebapp.config.json dist/staticwebapp.config.json
+
+      - name: Build API
+        working-directory: api
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy to Azure Static Web Apps
+        run: |
+          npx --yes @azure/static-web-apps-cli deploy \
+            --app-location app/dist \
+            --api-location api \
+            --deployment-token "${{ secrets.SWA_DEPLOYMENT_TOKEN }}" \
+            --env production
