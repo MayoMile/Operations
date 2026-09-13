@@ -5,9 +5,9 @@ import type { LoadDetail } from "@/lib/types";
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="font-body text-xs uppercase tracking-wide text-ink-muted dark:text-dark-ink-muted">{label}</p>
-      <p className="font-mono text-sm text-ink dark:text-dark-ink">{value}</p>
+      <p className="break-words font-mono text-sm text-ink dark:text-dark-ink">{value}</p>
     </div>
   );
 }
@@ -71,6 +71,14 @@ export function LoadDetailModal({
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field
+                label="Previous Delivery (Deadhead From)"
+                value={
+                  detail.previous_delivery_location
+                    ? formatLocation(detail.previous_delivery_location)
+                    : "— (earliest load on record)"
+                }
+              />
               <Field label="Pickup Location" value={formatLocation(detail.pickup_location)} />
               <Field label="Delivery Location" value={formatLocation(detail.delivery_location)} />
               {detail.stop_2_address && (

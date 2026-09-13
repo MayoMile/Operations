@@ -30,6 +30,10 @@ export interface LoadDetail extends LoadSummary {
   fuel_cost: number | null;
   created_at: string;
   updated_at: string;
+  /** Delivery location of the previous load in the truck's schedule — where
+   * this load's deadhead was measured from. Null for the earliest load on
+   * record. */
+  previous_delivery_location: string | null;
 }
 
 export interface LoadsSummary {
