@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSettlementDates, getSettlementStatement } from "@/lib/api";
 import { formatCurrency, formatDate, formatLocation } from "@/lib/format";
-import type { SettlementDateSummary, SettlementStatement } from "@/lib/types";
+import type { SettlementDateSummary, SettlementGroup, SettlementStatement } from "@/lib/types";
 import { PageHeader } from "@/components/PageHeader";
 import { MetricTile } from "@/components/MetricTile";
 import { Card } from "@/components/Card";
@@ -26,6 +26,18 @@ function lineTypeTone(lineType: string): "positive" | "negative" | "neutral" {
   if (lineType === "revenue") return "positive";
   if (lineType === "reversal" || lineType === "deduction") return "negative";
   return "neutral";
+}
+
+/** Revenue vs. everything that reduces it (deductions and reversals both
+ * count against the load the same way here) for a single group's header. */
+function groupTotals(group: SettlementGroup): { revenue: number; deduction: number } {
+  let revenue = 0;
+  let deduction = 0;
+  for (const line of group.lines) {
+    if (line.line_type === "revenue") revenue += line.amount;
+    else deduction += line.amount;
+  }
+  return { revenue, deduction };
 }
 
 export function SettlementsPage() {
@@ -147,7 +159,9 @@ export function SettlementsPage() {
           </Card>
 
           <div className="flex flex-col gap-4">
-            {statement.groups.map((group) => (
+            {statement.groups.map((group) => {
+              const { revenue, deduction } = groupTotals(group);
+              return (
               <Card key={`${group.agency_code}-${group.freight_bill}`}>
                 <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
                   <div>
@@ -167,9 +181,17 @@ export function SettlementsPage() {
                       </p>
                     )}
                   </div>
-                  <p className="font-mono text-sm font-semibold text-ink dark:text-dark-ink">
-                    {formatCurrency(group.net_amount)}
-                  </p>
+                  <div className="text-right">
+                    <p className="font-mono text-xs text-ink-muted dark:text-dark-ink-muted">
+                      Revenue <span className="text-positive">{formatCurrency(revenue)}</span>
+                    </p>
+                    <p className="font-mono text-xs text-ink-muted dark:text-dark-ink-muted">
+                      Deductions <span className="text-negative">-{formatCurrency(deduction)}</span>
+                    </p>
+                    <p className="mt-0.5 font-mono text-sm font-semibold text-ink dark:text-dark-ink">
+                      {formatCurrency(group.net_amount)}
+                    </p>
+                  </div>
                 </div>
 
                 <table className="w-full text-sm">
@@ -201,7 +223,8 @@ export function SettlementsPage() {
                   </tbody>
                 </table>
               </Card>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
