@@ -436,3 +436,25 @@ npx --yes @azure/static-web-apps-cli deploy \
   functions while moving the rest. Rejected as too risky to the working
   authentication system for an unconfirmed, possibly-unfixable platform
   limitation.
+- An in-platform Azure Functions **Timer Trigger** (`app.timer(...)`) to
+  ping the database on Azure's own scheduler instead of an external one —
+  confirmed broken by deploying it and checking Application Insights:
+  `"The listener for function 'Functions.keepDbWarmTimer' was unable to
+  start"`, retrying continuously and never succeeding. Timer triggers need
+  the same `AzureWebJobsStorage` backing (for their lock/lease mechanism)
+  that's already broken on this resource — so this hosting model can't run
+  *any* timer-triggered function reliably, not just HTTP ones. Reverted
+  immediately rather than leave a continuously-failing retry loop running.
+
+*Mitigations in place* (reduce how often this happens; none fix the root
+cause):
+- **`.github/workflows/keep-database-warm.yml`** — pings the anonymous
+  `/api/ping` endpoint (`pingDb.ts`) every 30 minutes during business hours,
+  keeping `mayomilesql1` from hitting its 60-minute auto-pause. Verified
+  working (pings do occasionally take 45-50s, meaning they're correctly
+  absorbing a real cold-start before a user would hit it) — but GitHub's
+  free scheduled-workflow queue is unreliable and under-fires significantly
+  (observed 7 of an expected ~34 runs in 24h), so this alone doesn't fully
+  prevent the issue.
+- **`.github/workflows/scheduled-redeploy.yml`** — redeploys `app` + `api`
+  every 6 hours, which recycles the Function host per the fix above.
