@@ -92,11 +92,13 @@ export function SettlementsPage() {
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="rounded-md border border-border bg-surface px-3 py-1.5 font-body text-xs font-medium dark:border-dark-border dark:bg-dark-surface dark:text-dark-ink"
               >
-                {dates.map((d) => (
-                  <option key={d.statement_date} value={d.statement_date}>
-                    {formatDate(d.statement_date)}
-                  </option>
-                ))}
+                {[...dates]
+                  .reverse()
+                  .map((d) => (
+                    <option key={d.statement_date} value={d.statement_date}>
+                      {formatDate(d.statement_date)}
+                    </option>
+                  ))}
               </select>
               <button
                 disabled={!hasNewer}
