@@ -120,16 +120,16 @@ export function ExecutiveDashboard({
       }));
   }, [data, rangeStart, rangeEnd]);
 
-  const loadsAtOrBelowRpm = useMemo(() => {
+  const loadsAtOrAboveRpm = useMemo(() => {
     if (!data) return [];
     return data.loadRpm
       .filter((r) => {
         const pickupDate = r.pickup_date.slice(0, 10);
         if (rangeStart && pickupDate < rangeStart) return false;
         if (rangeEnd && pickupDate > rangeEnd) return false;
-        return r.RPM <= rpmCutoff;
+        return r.RPM >= rpmCutoff;
       })
-      .sort((a, b) => a.RPM - b.RPM);
+      .sort((a, b) => b.RPM - a.RPM);
   }, [data, rangeStart, rangeEnd, rpmCutoff]);
 
   if (error) {
@@ -236,8 +236,8 @@ export function ExecutiveDashboard({
       </ChartCard>
 
       <ChartCard
-        title="Loads at or Below RPM"
-        subtitle={`${loadsAtOrBelowRpm.length} load${loadsAtOrBelowRpm.length === 1 ? "" : "s"} at $${rpmCutoff.toFixed(2)}/mi or lower`}
+        title="Loads at or Above RPM"
+        subtitle={`${loadsAtOrAboveRpm.length} load${loadsAtOrAboveRpm.length === 1 ? "" : "s"} at $${rpmCutoff.toFixed(2)}/mi or higher`}
         className="lg:col-span-2"
       >
         <div className="flex items-center gap-3">
@@ -256,9 +256,9 @@ export function ExecutiveDashboard({
         </div>
 
         <div className="mt-4 max-h-72 overflow-y-auto">
-          {loadsAtOrBelowRpm.length === 0 ? (
+          {loadsAtOrAboveRpm.length === 0 ? (
             <p className="font-body text-sm text-ink-muted dark:text-dark-ink-muted">
-              No loads at or below this RPM.
+              No loads at or above this RPM.
             </p>
           ) : (
             <table className="w-full text-sm">
@@ -272,7 +272,7 @@ export function ExecutiveDashboard({
                 </tr>
               </thead>
               <tbody>
-                {loadsAtOrBelowRpm.map((r) => (
+                {loadsAtOrAboveRpm.map((r) => (
                   <tr key={r.load_number} className="border-b border-border last:border-0 dark:border-dark-border">
                     <td className="py-1.5 pr-3 font-mono text-ink dark:text-dark-ink">{r.load_number}</td>
                     <td className="py-1.5 pr-3 text-ink-muted dark:text-dark-ink-muted">{r.agency_name}</td>
