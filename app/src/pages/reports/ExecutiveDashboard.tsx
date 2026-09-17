@@ -44,6 +44,7 @@ export function ExecutiveDashboard({
   const [data, setData] = useState<ExecutiveDashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rpmCutoff, setRpmCutoff] = useState(TARGET_RPM);
+  const [rpmDirection, setRpmDirection] = useState<"above" | "below">("above");
 
   useEffect(() => {
     getExecutiveDashboard()
@@ -120,17 +121,17 @@ export function ExecutiveDashboard({
       }));
   }, [data, rangeStart, rangeEnd]);
 
-  const loadsAtOrAboveRpm = useMemo(() => {
+  const rpmFilteredLoads = useMemo(() => {
     if (!data) return [];
     return data.loadRpm
       .filter((r) => {
         const pickupDate = r.pickup_date.slice(0, 10);
         if (rangeStart && pickupDate < rangeStart) return false;
         if (rangeEnd && pickupDate > rangeEnd) return false;
-        return r.RPM >= rpmCutoff;
+        return rpmDirection === "above" ? r.RPM >= rpmCutoff : r.RPM <= rpmCutoff;
       })
-      .sort((a, b) => b.RPM - a.RPM);
-  }, [data, rangeStart, rangeEnd, rpmCutoff]);
+      .sort((a, b) => (rpmDirection === "above" ? b.RPM - a.RPM : a.RPM - b.RPM));
+  }, [data, rangeStart, rangeEnd, rpmCutoff, rpmDirection]);
 
   if (error) {
     return (
@@ -236,11 +237,35 @@ export function ExecutiveDashboard({
       </ChartCard>
 
       <ChartCard
-        title="Loads at or Above RPM"
-        subtitle={`${loadsAtOrAboveRpm.length} load${loadsAtOrAboveRpm.length === 1 ? "" : "s"} at $${rpmCutoff.toFixed(2)}/mi or higher`}
+        title={`Loads at or ${rpmDirection === "above" ? "Above" : "Below"} RPM`}
+        subtitle={`${rpmFilteredLoads.length} load${rpmFilteredLoads.length === 1 ? "" : "s"} at $${rpmCutoff.toFixed(2)}/mi or ${rpmDirection === "above" ? "higher" : "lower"}`}
         className="lg:col-span-2"
       >
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 rounded-md border border-border p-0.5 dark:border-dark-border">
+            <button
+              type="button"
+              onClick={() => setRpmDirection("above")}
+              className={`rounded px-2.5 py-1 font-body text-xs font-medium ${
+                rpmDirection === "above"
+                  ? "bg-accent text-white"
+                  : "text-ink-muted dark:text-dark-ink-muted"
+              }`}
+            >
+              At or Above
+            </button>
+            <button
+              type="button"
+              onClick={() => setRpmDirection("below")}
+              className={`rounded px-2.5 py-1 font-body text-xs font-medium ${
+                rpmDirection === "below"
+                  ? "bg-accent text-white"
+                  : "text-ink-muted dark:text-dark-ink-muted"
+              }`}
+            >
+              At or Below
+            </button>
+          </div>
           <input
             type="range"
             min={RPM_SLIDER_MIN}
@@ -256,9 +281,9 @@ export function ExecutiveDashboard({
         </div>
 
         <div className="mt-4 max-h-72 overflow-y-auto">
-          {loadsAtOrAboveRpm.length === 0 ? (
+          {rpmFilteredLoads.length === 0 ? (
             <p className="font-body text-sm text-ink-muted dark:text-dark-ink-muted">
-              No loads at or above this RPM.
+              No loads at or {rpmDirection === "above" ? "above" : "below"} this RPM.
             </p>
           ) : (
             <table className="w-full text-sm">
@@ -272,7 +297,7 @@ export function ExecutiveDashboard({
                 </tr>
               </thead>
               <tbody>
-                {loadsAtOrAboveRpm.map((r) => (
+                {rpmFilteredLoads.map((r) => (
                   <tr key={r.load_number} className="border-b border-border last:border-0 dark:border-dark-border">
                     <td className="py-1.5 pr-3 font-mono text-ink dark:text-dark-ink">{r.load_number}</td>
                     <td className="py-1.5 pr-3 text-ink-muted dark:text-dark-ink-muted">{r.agency_name}</td>
