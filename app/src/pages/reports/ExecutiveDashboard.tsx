@@ -20,6 +20,7 @@ import { chartColors } from "@/theme/chartColors";
 import type { ExecutiveDashboardData } from "@/lib/types";
 
 const TARGET_RPM = 2.5;
+const RPM_THRESHOLDS = [2.5, 2.7, 2.9, 3.0, 3.25, 3.5];
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -112,6 +113,20 @@ export function ExecutiveDashboard({
         label: formatDateOnly(weekToMonday(w.week_number, w.week_year)),
         "Avg RPM": w.avg_rpm,
       }));
+  }, [data, rangeStart, rangeEnd]);
+
+  const rpmThresholdData = useMemo(() => {
+    if (!data) return [];
+    const filtered = data.loadRpm.filter((r) => {
+      const pickupDate = r.pickup_date.slice(0, 10);
+      if (rangeStart && pickupDate < rangeStart) return false;
+      if (rangeEnd && pickupDate > rangeEnd) return false;
+      return true;
+    });
+    return RPM_THRESHOLDS.map((threshold) => ({
+      label: `≥ $${threshold.toFixed(2)}`,
+      Loads: filtered.filter((r) => r.RPM >= threshold).length,
+    }));
   }, [data, rangeStart, rangeEnd]);
 
   if (error) {
@@ -214,6 +229,18 @@ export function ExecutiveDashboard({
               label={{ value: "Target", fontSize: 11, position: "insideTopRight" }}
             />
           </LineChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      <ChartCard title="Loads by RPM Threshold" subtitle="Count of loads at or above each rate per mile">
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={rpmThresholdData}>
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.2} />
+            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+            <Tooltip />
+            <Bar dataKey="Loads" fill={chartColors.accent} />
+          </BarChart>
         </ResponsiveContainer>
       </ChartCard>
     </div>

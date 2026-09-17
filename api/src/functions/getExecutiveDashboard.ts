@@ -7,7 +7,7 @@ export async function getExecutiveDashboard(
 ): Promise<HttpResponseInit> {
   try {
     const pool = await getPool();
-    const [weeklyTotals, monthlyRevenue, weeklyProfitability, weeklyRpmSummary] =
+    const [weeklyTotals, monthlyRevenue, weeklyProfitability, weeklyRpmSummary, loadRpm] =
       await Promise.all([
         pool
           .request()
@@ -19,6 +19,14 @@ export async function getExecutiveDashboard(
         pool
           .request()
           .query("SELECT * FROM dbo.vw_WeeklyRpmSummary ORDER BY week_year, week_number"),
+        // Per-load pickup_date + RPM, for the "loads over RPM threshold"
+        // chart — kept as raw rows (not pre-bucketed) so the frontend can
+        // apply the same date-range filter it already applies to every
+        // other chart on this dashboard, instead of introducing a second,
+        // server-side filtering path.
+        pool
+          .request()
+          .query("SELECT pickup_date, RPM FROM dbo.Loads WHERE RPM IS NOT NULL"),
       ]);
 
     return {
@@ -27,6 +35,7 @@ export async function getExecutiveDashboard(
         monthlyRevenue: monthlyRevenue.recordset,
         weeklyProfitability: weeklyProfitability.recordset,
         weeklyRpmSummary: weeklyRpmSummary.recordset,
+        loadRpm: loadRpm.recordset,
       },
     };
   } catch (err) {

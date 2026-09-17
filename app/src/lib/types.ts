@@ -170,11 +170,17 @@ export interface CurrencyMigrationSpotCheckRow {
   deadhead: number | null;
 }
 
+export interface LoadRpmRow {
+  pickup_date: string;
+  RPM: number;
+}
+
 export interface ExecutiveDashboardData {
   weeklyTotals: WeeklyTotalsRow[];
   monthlyRevenue: MonthlyRevenueRow[];
   weeklyProfitability: WeeklyProfitabilityRow[];
   weeklyRpmSummary: WeeklyRpmSummaryRow[];
+  loadRpm: LoadRpmRow[];
 }
 
 export interface FleetDashboardData {
