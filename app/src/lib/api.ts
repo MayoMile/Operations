@@ -7,6 +7,7 @@ import type {
   MostRecentLoad,
   PaginatedLoads,
   SettlementDateSummary,
+  SettlementsAllTimeSummary,
   SettlementStatement,
   WeeklyProfitabilityRow,
   WeeklyTotalsRow,
@@ -79,4 +80,8 @@ export function getSettlementDates(): Promise<{ statements: SettlementDateSummar
 
 export function getSettlementStatement(date: string): Promise<SettlementStatement> {
   return getJSON(`/api/settlements/${encodeURIComponent(date)}`);
+}
+
+export function getSettlementsSummary(): Promise<SettlementsAllTimeSummary> {
+  return getJSON(`/api/settlements/summary`);
 }

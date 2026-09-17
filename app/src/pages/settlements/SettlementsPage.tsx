@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
-import { getSettlementDates, getSettlementStatement } from "@/lib/api";
+import { getSettlementDates, getSettlementsSummary, getSettlementStatement } from "@/lib/api";
 import { formatCurrency, formatDate, formatLocation } from "@/lib/format";
-import type { SettlementDateSummary, SettlementGroup, SettlementStatement } from "@/lib/types";
+import type {
+  SettlementDateSummary,
+  SettlementGroup,
+  SettlementsAllTimeSummary,
+  SettlementStatement,
+} from "@/lib/types";
 import { PageHeader } from "@/components/PageHeader";
 import { MetricTile } from "@/components/MetricTile";
 import { Card } from "@/components/Card";
@@ -41,9 +46,11 @@ function groupTotals(group: SettlementGroup): { revenue: number; deduction: numb
 }
 
 export function SettlementsPage() {
+  const [view, setView] = useState<"statement" | "all">("statement");
   const [dates, setDates] = useState<SettlementDateSummary[] | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [statement, setStatement] = useState<SettlementStatement | null>(null);
+  const [allSummary, setAllSummary] = useState<SettlementsAllTimeSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +59,9 @@ export function SettlementsPage() {
         setDates(res.statements);
         if (res.statements.length > 0) setSelectedDate(res.statements[0].statement_date);
       })
+      .catch((e) => setError(String(e)));
+    getSettlementsSummary()
+      .then(setAllSummary)
       .catch((e) => setError(String(e)));
   }, []);
 
@@ -77,38 +87,60 @@ export function SettlementsPage() {
         title="Settlements"
         subtitle="Agency settlement statements — revenue, deductions, and corrections as issued"
         actions={
-          dates &&
-          dates.length > 0 && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-md border border-border p-0.5 dark:border-dark-border">
               <button
-                disabled={!hasOlder}
-                onClick={() => dates && setSelectedDate(dates[currentIndex + 1].statement_date)}
-                className="rounded-md border border-border px-3 py-1.5 font-body text-xs font-medium disabled:opacity-40 dark:border-dark-border dark:text-dark-ink"
+                onClick={() => setView("statement")}
+                className={`rounded px-2.5 py-1 font-body text-xs font-medium ${
+                  view === "statement"
+                    ? "bg-accent text-white"
+                    : "text-ink-muted dark:text-dark-ink-muted"
+                }`}
               >
-                Older
+                By Statement
               </button>
-              <select
-                value={selectedDate ?? ""}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="rounded-md border border-border bg-surface px-3 py-1.5 font-body text-xs font-medium dark:border-dark-border dark:bg-dark-surface dark:text-dark-ink"
-              >
-                {[...dates]
-                  .reverse()
-                  .map((d) => (
-                    <option key={d.statement_date} value={d.statement_date}>
-                      {formatDate(d.statement_date)}
-                    </option>
-                  ))}
-              </select>
               <button
-                disabled={!hasNewer}
-                onClick={() => dates && setSelectedDate(dates[currentIndex - 1].statement_date)}
-                className="rounded-md border border-border px-3 py-1.5 font-body text-xs font-medium disabled:opacity-40 dark:border-dark-border dark:text-dark-ink"
+                onClick={() => setView("all")}
+                className={`rounded px-2.5 py-1 font-body text-xs font-medium ${
+                  view === "all" ? "bg-accent text-white" : "text-ink-muted dark:text-dark-ink-muted"
+                }`}
               >
-                Newer
+                All Statements
               </button>
             </div>
-          )
+
+            {view === "statement" && dates && dates.length > 0 && (
+              <>
+                <button
+                  disabled={!hasOlder}
+                  onClick={() => dates && setSelectedDate(dates[currentIndex + 1].statement_date)}
+                  className="rounded-md border border-border px-3 py-1.5 font-body text-xs font-medium disabled:opacity-40 dark:border-dark-border dark:text-dark-ink"
+                >
+                  Older
+                </button>
+                <select
+                  value={selectedDate ?? ""}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="rounded-md border border-border bg-surface px-3 py-1.5 font-body text-xs font-medium dark:border-dark-border dark:bg-dark-surface dark:text-dark-ink"
+                >
+                  {[...dates]
+                    .reverse()
+                    .map((d) => (
+                      <option key={d.statement_date} value={d.statement_date}>
+                        {formatDate(d.statement_date)}
+                      </option>
+                    ))}
+                </select>
+                <button
+                  disabled={!hasNewer}
+                  onClick={() => dates && setSelectedDate(dates[currentIndex - 1].statement_date)}
+                  className="rounded-md border border-border px-3 py-1.5 font-body text-xs font-medium disabled:opacity-40 dark:border-dark-border dark:text-dark-ink"
+                >
+                  Newer
+                </button>
+              </>
+            )}
+          </div>
         }
       />
 
@@ -124,7 +156,29 @@ export function SettlementsPage() {
         </p>
       )}
 
-      {statement && (
+      {view === "all" && allSummary && (
+        <div className="flex flex-col gap-4">
+          <p className="font-body text-sm text-ink-muted dark:text-dark-ink-muted">
+            Across all {allSummary.statement_count} settlement statements on file
+          </p>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <MetricTile label="Total Revenue" value={formatCurrency(allSummary.summary.total_revenue)} tone="positive" />
+            <MetricTile
+              label="Reversals"
+              value={allSummary.summary.total_reversals > 0 ? `-${formatCurrency(allSummary.summary.total_reversals)}` : formatCurrency(0)}
+              tone={allSummary.summary.total_reversals > 0 ? "negative" : "neutral"}
+            />
+            <MetricTile
+              label="Deductions"
+              value={allSummary.summary.total_deductions > 0 ? `-${formatCurrency(allSummary.summary.total_deductions)}` : formatCurrency(0)}
+              tone={allSummary.summary.total_deductions > 0 ? "negative" : "neutral"}
+            />
+            <MetricTile label="Net Total" value={formatCurrency(allSummary.summary.net_total)} />
+          </div>
+        </div>
+      )}
+
+      {view === "statement" && statement && (
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <MetricTile label="Total Revenue" value={formatCurrency(statement.summary.total_revenue)} tone="positive" />

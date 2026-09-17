@@ -241,3 +241,13 @@ export interface SettlementStatement {
     net_total: number;
   };
 }
+
+export interface SettlementsAllTimeSummary {
+  statement_count: number;
+  summary: {
+    total_revenue: number;
+    total_reversals: number;
+    total_deductions: number;
+    net_total: number;
+  };
+}
