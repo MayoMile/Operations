@@ -171,7 +171,10 @@ export interface CurrencyMigrationSpotCheckRow {
 }
 
 export interface LoadRpmRow {
+  load_number: string;
+  agency_name: string;
   pickup_date: string;
+  gross_to_the_truck: number | null;
   RPM: number;
 }
 

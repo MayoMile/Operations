@@ -15,12 +15,16 @@ import {
 } from "recharts";
 import { ChartCard } from "@/components/ChartCard";
 import { getExecutiveDashboard } from "@/lib/api";
-import { formatDateOnly, weekToMonday } from "@/lib/format";
+import { formatCurrency, formatDate, formatDateOnly, weekToMonday } from "@/lib/format";
 import { chartColors } from "@/theme/chartColors";
 import type { ExecutiveDashboardData } from "@/lib/types";
 
 const TARGET_RPM = 2.5;
-const RPM_THRESHOLDS = [2.5, 2.7, 2.9, 3.0, 3.25, 3.5];
+// Loads currently range ~$1.35-$5.35/mi; padded a bit on each side so the
+// slider has room without being mostly dead space.
+const RPM_SLIDER_MIN = 1.0;
+const RPM_SLIDER_MAX = 5.5;
+const RPM_SLIDER_STEP = 0.05;
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -39,6 +43,7 @@ export function ExecutiveDashboard({
 }) {
   const [data, setData] = useState<ExecutiveDashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rpmCutoff, setRpmCutoff] = useState(TARGET_RPM);
 
   useEffect(() => {
     getExecutiveDashboard()
@@ -115,19 +120,17 @@ export function ExecutiveDashboard({
       }));
   }, [data, rangeStart, rangeEnd]);
 
-  const rpmThresholdData = useMemo(() => {
+  const loadsAtOrBelowRpm = useMemo(() => {
     if (!data) return [];
-    const filtered = data.loadRpm.filter((r) => {
-      const pickupDate = r.pickup_date.slice(0, 10);
-      if (rangeStart && pickupDate < rangeStart) return false;
-      if (rangeEnd && pickupDate > rangeEnd) return false;
-      return true;
-    });
-    return RPM_THRESHOLDS.map((threshold) => ({
-      label: `≥ $${threshold.toFixed(2)}`,
-      Loads: filtered.filter((r) => r.RPM >= threshold).length,
-    }));
-  }, [data, rangeStart, rangeEnd]);
+    return data.loadRpm
+      .filter((r) => {
+        const pickupDate = r.pickup_date.slice(0, 10);
+        if (rangeStart && pickupDate < rangeStart) return false;
+        if (rangeEnd && pickupDate > rangeEnd) return false;
+        return r.RPM <= rpmCutoff;
+      })
+      .sort((a, b) => a.RPM - b.RPM);
+  }, [data, rangeStart, rangeEnd, rpmCutoff]);
 
   if (error) {
     return (
@@ -232,16 +235,62 @@ export function ExecutiveDashboard({
         </ResponsiveContainer>
       </ChartCard>
 
-      <ChartCard title="Loads by RPM Threshold" subtitle="Count of loads at or above each rate per mile">
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={rpmThresholdData}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.2} />
-            <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-            <Tooltip />
-            <Bar dataKey="Loads" fill={chartColors.accent} />
-          </BarChart>
-        </ResponsiveContainer>
+      <ChartCard
+        title="Loads at or Below RPM"
+        subtitle={`${loadsAtOrBelowRpm.length} load${loadsAtOrBelowRpm.length === 1 ? "" : "s"} at $${rpmCutoff.toFixed(2)}/mi or lower`}
+        className="lg:col-span-2"
+      >
+        <div className="flex items-center gap-3">
+          <input
+            type="range"
+            min={RPM_SLIDER_MIN}
+            max={RPM_SLIDER_MAX}
+            step={RPM_SLIDER_STEP}
+            value={rpmCutoff}
+            onChange={(e) => setRpmCutoff(Number(e.target.value))}
+            className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-surface-muted accent-accent dark:bg-dark-surface-muted"
+          />
+          <span className="w-16 shrink-0 text-right font-mono text-sm font-semibold text-ink dark:text-dark-ink">
+            ${rpmCutoff.toFixed(2)}
+          </span>
+        </div>
+
+        <div className="mt-4 max-h-72 overflow-y-auto">
+          {loadsAtOrBelowRpm.length === 0 ? (
+            <p className="font-body text-sm text-ink-muted dark:text-dark-ink-muted">
+              No loads at or below this RPM.
+            </p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left font-body text-xs uppercase tracking-wide text-ink-muted dark:border-dark-border dark:text-dark-ink-muted">
+                  <th className="py-1.5 pr-3 font-medium">Load #</th>
+                  <th className="py-1.5 pr-3 font-medium">Agency</th>
+                  <th className="py-1.5 pr-3 font-medium">Pickup</th>
+                  <th className="py-1.5 pr-3 text-right font-medium">RPM</th>
+                  <th className="py-1.5 text-right font-medium">Gross</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadsAtOrBelowRpm.map((r) => (
+                  <tr key={r.load_number} className="border-b border-border last:border-0 dark:border-dark-border">
+                    <td className="py-1.5 pr-3 font-mono text-ink dark:text-dark-ink">{r.load_number}</td>
+                    <td className="py-1.5 pr-3 text-ink-muted dark:text-dark-ink-muted">{r.agency_name}</td>
+                    <td className="py-1.5 pr-3 font-mono text-xs text-ink-muted dark:text-dark-ink-muted">
+                      {formatDate(r.pickup_date)}
+                    </td>
+                    <td className="py-1.5 pr-3 text-right font-mono text-ink dark:text-dark-ink">
+                      ${r.RPM.toFixed(2)}
+                    </td>
+                    <td className="py-1.5 text-right font-mono text-ink dark:text-dark-ink">
+                      {formatCurrency(r.gross_to_the_truck)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </ChartCard>
     </div>
   );
