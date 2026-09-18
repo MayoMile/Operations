@@ -11,6 +11,10 @@ export const chartColors = {
   accent: tokens.colors.accent,
   accentHover: tokens.colors["accent-hover"],
   accentMuted: tokens.colors["accent-muted"],
+  // Dedicated navy for chart series that need to read clearly against both
+  // the green RPM line and the amber target line — accentMuted (a pale
+  // peach tint) was too washed out to distinguish at a glance.
+  navy: "#3d5a80",
   positive: tokens.colors.positive,
   negative: tokens.colors.negative,
   warning: tokens.colors.warning,

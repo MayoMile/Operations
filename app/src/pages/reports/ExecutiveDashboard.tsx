@@ -192,7 +192,7 @@ export function ExecutiveDashboard({
             />
             <Tooltip />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar yAxisId="profit" dataKey="Net Profit" fill={chartColors.accentMuted} stroke={chartColors.accent} />
+            <Bar yAxisId="profit" dataKey="Net Profit" fill={chartColors.navy} />
             <Line
               yAxisId="rpm"
               type="monotone"
