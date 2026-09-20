@@ -3,13 +3,15 @@ import { PageHeader } from "@/components/PageHeader";
 import { formatDateOnly } from "@/lib/format";
 import { ExecutiveDashboard } from "./ExecutiveDashboard";
 import { FleetDashboard } from "./FleetDashboard";
+import { FuelCostDashboard } from "./FuelCostDashboard";
 import { DataQualityDashboard } from "./DataQualityDashboard";
 
-type DashboardTab = "executive" | "fleet" | "quality";
+type DashboardTab = "executive" | "fleet" | "fuel" | "quality";
 
 const TABS: { key: DashboardTab; label: string }[] = [
   { key: "executive", label: "Executive Performance" },
   { key: "fleet", label: "Fleet Efficiency" },
+  { key: "fuel", label: "Fuel Cost" },
   { key: "quality", label: "Data Quality" },
 ];
 
@@ -90,6 +92,7 @@ export function ReportsPage() {
 
       {tab === "executive" && <ExecutiveDashboard rangeStart={rangeStart} rangeEnd={rangeEnd} />}
       {tab === "fleet" && <FleetDashboard rangeStart={rangeStart} rangeEnd={rangeEnd} />}
+      {tab === "fuel" && <FuelCostDashboard rangeStart={rangeStart} rangeEnd={rangeEnd} />}
       {tab === "quality" && <DataQualityDashboard />}
     </div>
   );

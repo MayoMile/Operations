@@ -2,6 +2,7 @@ import type {
   DataQualityDashboardData,
   DieselPriceResponse,
   ExecutiveDashboardData,
+  FuelCostDashboardData,
   FleetDashboardData,
   LoadDetail,
   MostRecentLoad,
@@ -64,6 +65,10 @@ export function getExecutiveDashboard(): Promise<ExecutiveDashboardData> {
 
 export function getFleetDashboard(): Promise<FleetDashboardData> {
   return getJSON(`/api/dashboards/fleet`);
+}
+
+export function getFuelCostDashboard(): Promise<FuelCostDashboardData> {
+  return getJSON(`/api/dashboards/fuel-cost`);
 }
 
 export function getDataQualityDashboard(): Promise<DataQualityDashboardData> {

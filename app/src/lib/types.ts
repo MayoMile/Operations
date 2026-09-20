@@ -207,6 +207,42 @@ export interface DieselPriceResponse {
   live: boolean;
 }
 
+export interface ActualFuelCostByLoadRow {
+  load_number: string;
+  freight_bill: string;
+  total_miles: number;
+  loaded_miles: number;
+  total_pretrip_charges: number;
+  cost_per_mile: number;
+  cents_per_mile: number;
+}
+
+export interface FuelCostVarianceRow {
+  load_number: string;
+  freight_bill: string;
+  total_miles: number;
+  cost_per_mile: number;
+  cents_per_mile: number;
+  estimated_cost_per_mile: number;
+  variance_from_estimate: number;
+}
+
+export interface WeeklyActualFuelCostRow {
+  week_number: number;
+  week_year: number;
+  total_fuel_cost: number;
+  total_miles: number;
+  weighted_cost_per_mile: number;
+  weighted_cents_per_mile: number;
+}
+
+export interface FuelCostDashboardData {
+  byLoad: ActualFuelCostByLoadRow[];
+  variance: FuelCostVarianceRow[];
+  weekly: WeeklyActualFuelCostRow[];
+  weeklyRpm: WeeklyRpmSummaryRow[];
+}
+
 export interface SettlementDateSummary {
   statement_date: string;
   net_total: number;
