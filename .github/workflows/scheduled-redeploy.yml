@@ -26,7 +26,6 @@ jobs:
         run: |
           npm ci
           npm run build
-          cp ../staticwebapp.config.json dist/staticwebapp.config.json
 
       - name: Build API
         working-directory: api

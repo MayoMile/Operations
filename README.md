@@ -407,6 +407,38 @@ deployed (or once you've supplied real local credentials + the
 
 ## Known issues
 
+**RESOLVED — manual deploys were silently shipping without auth (2026-09-30).**
+
+`staticwebapp.config.json` — the file that enforces the `authorized` role on
+every route — lives at the repo root, not inside `app/`. Azure Static Web
+Apps only applies it if it's present in the **deployed output folder**
+(`app/dist` when deploying with `--app-location app/dist`, this project's
+pattern). `vite build` never copied it there — only `app/public/*` gets
+copied into `dist` automatically, and the config file was never in
+`app/public/`.
+
+`scheduled-redeploy.yml` (the 6-hour host-recycle job) happened to `cp` the
+config into `dist` before deploying, so it always shipped correctly
+protected. But every **manual** `swa deploy` run during this project —
+the standard way changes got shipped all session — used `npm run build`
+without that copy step, so `app/dist` had no config file at all. Azure's
+default with no config file is **no route restrictions**: every `/api/*`
+endpoint (loads, settlements, the new upload endpoint, everything except
+the intentionally-anonymous `/api/ping`) served real data to anyone, no
+sign-in required, until the next scheduled redeploy silently fixed it again
+6 hours later. Caught by testing that a brand-new endpoint was actually
+auth-gated in production — it wasn't, and neither was anything else.
+
+*Fix:* `app/package.json`'s `build` script now copies
+`../staticwebapp.config.json` into `dist/` itself (via a plain Node
+one-liner, no new dependency), so **any** build — manual or CI — ships a
+protected artifact. `scheduled-redeploy.yml`'s now-redundant explicit `cp`
+step was removed since the build script covers it. There is currently no
+automated check that a deploy actually shipped a config file — if you're
+ever unsure after a deploy, confirm with an unauthenticated request to a
+protected route (e.g. `curl -i https://dashboard.mayomile.com/api/loads`)
+and require a `302` to `/.auth/login/aad`, never a `200` with data.
+
 **Intermittent "Error 403 - This web app is stopped" on API-backed pages.**
 
 *Symptom:* `/loads`, `/reports`, or any other API-backed page shows an
