@@ -9,7 +9,10 @@
     "AZURE_CLIENT_SECRET": "",
     "AZURE_TENANT_ID": "",
     "EIA_API_KEY": "",
-    "AUTHORIZED_USERS": "user1@yourdomain.com,user2@yourdomain.com"
+    "AUTHORIZED_USERS": "user1@yourdomain.com,user2@yourdomain.com",
+    "AZURE_STORAGE_ACCOUNT_NAME": "",
+    "N8N_WEBHOOK_URL": "",
+    "N8N_WEBHOOK_SECRET": ""
   },
   "Host": {
     "CORS": "*"

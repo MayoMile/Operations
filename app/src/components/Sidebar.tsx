@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { to: "/agencies", label: "Agencies" },
   { to: "/settlements", label: "Settlements" },
   { to: "/route-calculator", label: "Route Calculator" },
+  { to: "/upload", label: "Upload" },
   { to: "/reports", label: "Reports" },
   { to: "/settings", label: "Settings" },
 ];

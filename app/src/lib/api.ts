@@ -90,3 +90,20 @@ export function getSettlementStatement(date: string): Promise<SettlementStatemen
 export function getSettlementsSummary(): Promise<SettlementsAllTimeSummary> {
   return getJSON(`/api/settlements/summary`);
 }
+
+export async function uploadRateConfirmation(file: File): Promise<void> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  let res: Response;
+  try {
+    res = await fetch(`/api/upload-rate-confirmation`, { method: "POST", body: formData });
+  } catch {
+    throw new Error("Couldn't reach the server. Check your connection and try again.");
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error((body as { error?: string } | null)?.error || `Upload failed (${res.status}).`);
+  }
+}

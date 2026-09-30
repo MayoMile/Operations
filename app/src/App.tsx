@@ -7,6 +7,7 @@ import { LoadsPage } from "./pages/loads/LoadsPage";
 import { AgenciesPage } from "./pages/agencies/AgenciesPage";
 import { SettlementsPage } from "./pages/settlements/SettlementsPage";
 import { RouteCalculatorPage } from "./pages/routecalc/RouteCalculatorPage";
+import { UploadPage } from "./pages/upload/UploadPage";
 import { SettingsPage } from "./pages/settings/SettingsPage";
 
 // Recharts is a large dependency only Reports needs — code-split it out of
@@ -31,6 +32,7 @@ function Shell() {
             <Route path="/agencies" element={<AgenciesPage />} />
             <Route path="/settlements" element={<SettlementsPage />} />
             <Route path="/route-calculator" element={<RouteCalculatorPage />} />
+            <Route path="/upload" element={<UploadPage />} />
             <Route
               path="/reports"
               element={

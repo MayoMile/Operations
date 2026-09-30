@@ -238,6 +238,9 @@ AZURE_SQL_SERVER      = your-server-name.database.windows.net
 AZURE_SQL_DATABASE    = mayomilesql1
 EIA_API_KEY           = <if using the route calculator>
 APPLICATIONINSIGHTS_CONNECTION_STRING = <from an Application Insights resource — see below>
+AZURE_STORAGE_ACCOUNT_NAME = <storage account holding the rate-confirmations container>
+N8N_WEBHOOK_URL       = <n8n webhook that receives uploaded rate confirmations>
+N8N_WEBHOOK_SECRET    = <shared secret sent as the X-Webhook-Secret header>
 ```
 `AZURE_CLIENT_ID`/`SECRET` are read by `staticwebapp.config.json`'s
 `clientIdSettingName`/`clientSecretSettingName` for sign-in, **and** by
@@ -272,6 +275,20 @@ ALTER ROLE db_datareader ADD MEMBER [<app registration display name>];
 (Matched by display name, e.g. `Mayo Mile Operations` — not by client ID.)
 If the app registration's client secret is ever rotated, no SQL change is
 needed since the grant is tied to the app identity, not the secret.
+
+**Blob Storage (rate-confirmation uploads) uses the same service principal,
+for the same reason.** `uploadRateConfirmation.ts` authenticates to Blob
+Storage with `ClientSecretCredential` using the existing
+`AZURE_CLIENT_ID`/`SECRET`/`AZURE_TENANT_ID` rather than
+`DefaultAzureCredential`/managed identity — same platform limitation as SQL
+above. The app registration needs two roles on the storage account (Portal →
+storage account → **Access Control (IAM)** → **Add role assignment**, or
+`New-AzRoleAssignment`):
+- **Storage Blob Data Contributor** — upload the file
+- **Storage Blob Delegator** — required specifically to call
+  `getUserDelegationKey()` and mint the short-lived read-only SAS handed to
+  n8n; Data Contributor alone does not include this and the SAS step fails
+  silently without it.
 
 Also replace the placeholder tenant ID baked into
 `staticwebapp.config.json`'s `openIdIssuer` (`00000000-0000-0000-0000-000000000000`)
