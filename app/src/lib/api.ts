@@ -1,4 +1,6 @@
 import type {
+  AgenciesListResponse,
+  AgencyDetailResponse,
   DataQualityDashboardData,
   DieselPriceResponse,
   ExecutiveDashboardData,
@@ -89,6 +91,14 @@ export function getSettlementStatement(date: string): Promise<SettlementStatemen
 
 export function getSettlementsSummary(): Promise<SettlementsAllTimeSummary> {
   return getJSON(`/api/settlements/summary`);
+}
+
+export function getAgencies(): Promise<AgenciesListResponse> {
+  return getJSON(`/api/agencies`);
+}
+
+export function getAgency(code: string): Promise<AgencyDetailResponse> {
+  return getJSON(`/api/agencies/${encodeURIComponent(code)}`);
 }
 
 export async function uploadRateConfirmation(file: File): Promise<void> {

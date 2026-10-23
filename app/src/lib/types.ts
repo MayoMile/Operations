@@ -290,3 +290,46 @@ export interface SettlementsAllTimeSummary {
     net_total: number;
   };
 }
+
+export interface AgencyCode {
+  code: string;
+  name: string;
+}
+
+export interface AgencySummary {
+  id: string;
+  name: string;
+  codes: AgencyCode[];
+  load_count: number;
+  total_revenue: number;
+  avg_revenue_per_load: number | null;
+  weighted_rpm: number | null;
+  deadhead_pct: number | null;
+  first_load_date: string | null;
+  last_load_date: string | null;
+  contact_count: number;
+}
+
+export interface AgencyOverall {
+  load_count: number;
+  weighted_rpm: number | null;
+  deadhead_pct: number | null;
+}
+
+export interface AgenciesListResponse {
+  agencies: AgencySummary[];
+  overall: AgencyOverall;
+}
+
+export interface AgencyContact {
+  phone_number: string | null;
+  email: string | null;
+}
+
+export interface AgencyDetailResponse {
+  agency: AgencySummary;
+  contacts: AgencyContact[];
+  possible_matches: { id: string; name: string }[];
+  loads: LoadSummary[];
+  overall: AgencyOverall;
+}

@@ -82,3 +82,12 @@ export function weekToMonday(week: number, year: number): string {
   monday.setUTCDate(monday.getUTCDate() - day + 1);
   return monday.toISOString().slice(0, 10);
 }
+
+/** "2487595155" -> "(248) 759-5155". Anything that isn't a plain 10-digit
+ * number passes through unchanged. */
+export function formatPhone(value: string | null | undefined): string {
+  if (!value) return "—";
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 10) return value;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}

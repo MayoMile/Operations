@@ -5,6 +5,7 @@ import { DarkModeToggle } from "./components/DarkModeToggle";
 import { UserMenu } from "./components/UserMenu";
 import { LoadsPage } from "./pages/loads/LoadsPage";
 import { AgenciesPage } from "./pages/agencies/AgenciesPage";
+import { AgencyDetailPage } from "./pages/agencies/AgencyDetailPage";
 import { SettlementsPage } from "./pages/settlements/SettlementsPage";
 import { RouteCalculatorPage } from "./pages/routecalc/RouteCalculatorPage";
 import { UploadPage } from "./pages/upload/UploadPage";
@@ -30,6 +31,7 @@ function Shell() {
             <Route path="/" element={<Navigate to="/loads" replace />} />
             <Route path="/loads" element={<LoadsPage />} />
             <Route path="/agencies" element={<AgenciesPage />} />
+            <Route path="/agencies/:code" element={<AgencyDetailPage />} />
             <Route path="/settlements" element={<SettlementsPage />} />
             <Route path="/route-calculator" element={<RouteCalculatorPage />} />
             <Route path="/upload" element={<UploadPage />} />
