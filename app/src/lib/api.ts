@@ -34,7 +34,7 @@ export function getLoadByNumber(loadNumber: string): Promise<LoadDetail> {
 }
 
 export function searchLoads(query: string): Promise<PaginatedLoads> {
-  return getJSON(`/api/loads/search?q=${encodeURIComponent(query)}`);
+  return getJSON(`/api/search-loads?q=${encodeURIComponent(query)}`);
 }
 
 export function getLoadsForWeek(

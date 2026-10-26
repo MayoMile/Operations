@@ -65,7 +65,13 @@ export function LoadsPage() {
           r.delivery_location.toLowerCase().includes(loc);
         if (!matchesLocation) return false;
       }
-      if (num && !r.load_number.toLowerCase().includes(num)) return false;
+      if (
+        num &&
+        !r.load_number.toLowerCase().includes(num) &&
+        !(r.freight_bill ?? "").toLowerCase().includes(num)
+      ) {
+        return false;
+      }
       const pickupDate = r.pickup_date.slice(0, 10);
       if (rangeStart && pickupDate < rangeStart) return false;
       if (rangeEnd && pickupDate > rangeEnd) return false;
@@ -210,10 +216,22 @@ export function LoadsPage() {
 
   const columns: Column<LoadSummary>[] = [
     {
-      key: "load_number",
-      header: "Load #",
-      render: (r) => r.load_number,
-      sortValue: (r) => r.load_number,
+      key: "freight_bill",
+      header: "FB #",
+      render: (r) =>
+        r.freight_bill ? (
+          r.freight_bill
+        ) : (
+          <span
+            className="text-ink-faint dark:text-dark-ink-muted"
+            title="No freight bill on file — showing the load number"
+          >
+            {r.load_number}
+          </span>
+        ),
+      // Numeric when possible so "999" sorts before "2087161" instead of after.
+      sortValue: (r) =>
+        r.freight_bill && /^\d+$/.test(r.freight_bill) ? Number(r.freight_bill) : (r.freight_bill ?? r.load_number),
     },
     {
       key: "agency_name",
@@ -393,14 +411,14 @@ export function LoadsPage() {
 
         <div className="flex flex-col gap-1">
           <label className="font-body text-xs uppercase tracking-wide text-ink-muted dark:text-dark-ink-muted">
-            Search by Load #
+            Search by FB # or Load #
           </label>
           <input
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && runFullHistorySearch()}
-            placeholder="e.g. 450 or ML-10234"
-            className="w-40 rounded-md border border-border bg-surface px-2 py-1.5 font-mono text-sm dark:border-dark-border dark:bg-dark-surface-muted dark:text-dark-ink"
+            placeholder="e.g. 2913406 or EL12683246"
+            className="w-48 rounded-md border border-border bg-surface px-2 py-1.5 font-mono text-sm dark:border-dark-border dark:bg-dark-surface-muted dark:text-dark-ink"
           />
           <p className="font-body text-[11px] text-ink-faint dark:text-dark-ink-muted">
             Filters instantly · Enter searches all history

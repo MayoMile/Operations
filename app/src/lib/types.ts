@@ -3,6 +3,7 @@
 
 export interface LoadSummary {
   load_number: string;
+  freight_bill: string | null;
   agency_name: string;
   pickup_date: string;
   pickup_location: string;

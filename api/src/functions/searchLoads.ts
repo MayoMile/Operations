@@ -2,7 +2,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/fu
 import { getPool, sql } from "../db/pool.js";
 
 const LIST_COLUMNS = `
-  load_number, agency_name, pickup_date, pickup_location, delivery_date,
+  load_number, freight_bill, agency_name, pickup_date, pickup_location, delivery_date,
   delivery_location, loaded_miles, deadhead, total_miles, gross_to_the_truck, RPM
 `;
 
@@ -22,7 +22,9 @@ export async function searchLoads(
       .input("search_text", sql.VarChar, q)
       .query(`
         SELECT ${LIST_COLUMNS}
-        FROM dbo.fn_LoadsByNumberSearch(@search_text)
+        FROM dbo.Loads
+        WHERE load_number LIKE '%' + @search_text + '%'
+           OR freight_bill LIKE '%' + @search_text + '%'
         ORDER BY pickup_date DESC
       `);
 
@@ -43,6 +45,6 @@ export async function searchLoads(
 app.http("searchLoads", {
   methods: ["GET"],
   authLevel: "anonymous",
-  route: "loads/search",
+  route: "search-loads",
   handler: searchLoads,
 });

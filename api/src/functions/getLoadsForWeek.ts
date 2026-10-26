@@ -2,7 +2,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/fu
 import { getPool, sql } from "../db/pool.js";
 
 const LIST_COLUMNS = `
-  load_number, agency_name, pickup_date, pickup_location, delivery_date,
+  load_number, freight_bill, agency_name, pickup_date, pickup_location, delivery_date,
   delivery_location, loaded_miles, deadhead, total_miles, gross_to_the_truck, RPM
 `;
 
